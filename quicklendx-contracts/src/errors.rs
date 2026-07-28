@@ -220,8 +220,20 @@ pub enum QuickLendXError {
     /// Insurance coverage is not active at the time of default/settlement.
     InsuranceNotActive = 2206,
     /// A report/analytics-snapshot was requested while an invoice has an
-    /// unresolved (`Disputed` or `UnderReview`) dispute.
-    ActiveDisputeExists = 2207,
+        /// unresolved (`Disputed` or `UnderReview`) dispute.
+            ActiveDisputeExists = 2207,
+                /// A protocol-version migration was attempted with a `new_version` that
+                    /// does not strictly exceed the currently stored generation counter.
+                        ///
+                            /// Threat: without this guard, a future storage-schema migration could
+                                /// rewrite the on-chain layout while leaving `proto_ver` unchanged (or
+                                    /// setting it backwards/equal). Off-chain indexers, SDKs, and governance
+                                        /// tooling that gate compatibility on `get_version` (see
+                                            /// docs/GENERATION_COUNTER.md) would then keep treating post-migration
+                                                /// data as the old schema, silently misparsing records or accepting a
+                                                    /// stale cached version as still current.
+                                                        MigrationVersionNotBumped = 2208,
+                                                        }
     /// BREAKING: Do not renumber this variant. public ABI consumption.
     StaleInvestmentSnapshot = 2208,
 }
@@ -242,7 +254,6 @@ impl From<QuickLendXError> for Symbol {
             // Authorization
             QuickLendXError::Unauthorized => symbol_short!("UNAUTH"),
             QuickLendXError::NotBusinessOwner => symbol_short!("NOT_OWN"),
-            QuickLendXError::InvalidFreezeReason => symbol_short!("FRZ_RSN"),
             QuickLendXError::NotInvestor => symbol_short!("NOT_INV"),
             QuickLendXError::NotAdmin => symbol_short!("NOT_ADM"),
             QuickLendXError::SelfCallNotAllowed => symbol_short!("SELF_NA"),
